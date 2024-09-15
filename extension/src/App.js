@@ -171,7 +171,7 @@ function App() {
             <p className="text-black text-center">
               Visit the{" "}
               <a
-                href="localhost:3000/leaderboard" /* Change the URL to "https://study-showdown.vercel.app/leaderboard" once deployed */
+                href="https://localhost:3000/leaderboard" /* Change the URL to "https://study-showdown.vercel.app/leaderboard" once deployed */
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-blue-700 underline hover:text-blue-800"
