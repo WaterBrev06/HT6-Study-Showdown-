@@ -32,6 +32,16 @@ function isDefaultChromePage(url) {
          defaultPatterns.some(pattern => url.startsWith(pattern));
 }
 
+// Helper function to safely send messages to tabs
+function sendMessageToTab(tabId, message) {
+  chrome.tabs.sendMessage(tabId, message, response => {
+    if (chrome.runtime.lastError) {
+      // Silently handle expected errors like closed/invalid tabs
+      return;
+    }
+  });
+}
+
 function handleTabChange() {
   chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
     if (tabs.length === 0) return;
@@ -41,16 +51,14 @@ function handleTabChange() {
 
     // Skip score changes for default Chrome pages
     if (isDefaultChromePage(url)) {
-      console.log('Skipping score change for default Chrome page');
-      return;
+      return; // Remove console.log
     }
 
     // Check if we're in word search mode
     chrome.storage.local.get(['searchWord', 'score'], function(data) {
       // If we have a search word, skip domain-based scoring
       if (data.searchWord) {
-        console.log('In word search mode, skipping domain-based scoring');
-        return;
+        return; // Remove console.log
       }
 
       // Only apply domain-based scoring if not in word search mode
@@ -67,14 +75,12 @@ function handleTabChange() {
           visitedUrls.add(url);
           const newScore = (data.score || 0) + 10;
           chrome.storage.local.set({ score: newScore });
-          chrome.tabs.sendMessage(activeTab.id, { action: "flyOwl", scoreChange: 10 });
-          console.log(`New score: ${newScore}`);
+          sendMessageToTab(activeTab.id, { action: "flyOwl", scoreChange: 10 });
         }
       } else {
         const newScore = (data.score || 0) - 5;
         chrome.storage.local.set({ score: newScore });
-        chrome.tabs.sendMessage(activeTab.id, { action: "flyOwl", scoreChange: -5 });
-        console.log(`New score: ${newScore}`);
+        sendMessageToTab(activeTab.id, { action: "flyOwl", scoreChange: -5 });
         bad += 1;
       }
     });
@@ -156,15 +162,9 @@ function handleGameEnd() {
     }
 
     // Send flyOwlAway message to all tabs
-    chrome.tabs.query({}, (tabs) => {
-      tabs.forEach((tab) => {
-        chrome.tabs.sendMessage(tab.id, { 
-          action: "flyOwlAway"
-        }, () => {
-          if (chrome.runtime.lastError) {
-            // Ignore errors from tabs that can't receive messages
-          }
-        });
+    chrome.tabs.query({}, tabs => {
+      tabs.forEach(tab => {
+        sendMessageToTab(tab.id, { action: "flyOwlAway" });
       });
     });
 
@@ -197,7 +197,6 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
           word: data.searchWord 
         }, (response) => {
           if (chrome.runtime.lastError) {
-            console.error("Error sending flyOwl message:", chrome.runtime.lastError);
           }
         });
       }
@@ -212,7 +211,6 @@ chrome.tabs.onCreated.addListener((tab) => {
       // Trigger owl animation on new tab
       chrome.tabs.sendMessage(tab.id, { action: "flyOwl" }, (response) => {
         if (chrome.runtime.lastError) {
-          console.error("Error sending flyOwl message:", chrome.runtime.lastError);
         }
       });
     }
@@ -395,7 +393,6 @@ chrome.alarms.onAlarm.addListener((alarm) => {
 
       // Skip periodic updates if in word search mode
       if (data.searchWord) {
-        console.log('In word search mode, skipping periodic score updates');
         return;
       }
 
@@ -407,15 +404,14 @@ chrome.alarms.onAlarm.addListener((alarm) => {
       const newScore = isEducational ? data.score + 5 : data.score - 5;
       
       await chrome.storage.local.set({ score: newScore });
-      console.debug(`Score ${isEducational ? 'increased' : 'decreased'} to ${newScore}`);
-
+      
       try {
-        await chrome.tabs.sendMessage(tabs[0].id, { 
+        sendMessageToTab(tabs[0].id, { 
           action: "flyOwl",
           scoreChange: isEducational ? 5 : -5
         });
       } catch (error) {
-        // Silently handle messaging errors
+        // Silently handle any remaining errors
       }
     });
   } else if (alarm.name === 'endGameTimer') {
