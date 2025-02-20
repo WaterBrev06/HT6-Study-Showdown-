@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { FaHome } from 'react-icons/fa';
 import Image from 'next/image';
-import defaultPicture from '../icons/default-pfp.png';
+import defaultPicture from '../../public/images/default-pfp.png';
 import { useUser } from '@auth0/nextjs-auth0/client';
 import LeaderboardTable from '../components/Leaderboard'; 
 import { getFirestore, collection, getDocs } from 'firebase/firestore';

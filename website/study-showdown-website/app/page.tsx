@@ -3,6 +3,8 @@
 import { ReactTyped } from 'react-typed';
 import Button from './components/Button';
 import './globals.css';
+import Navbar from './components/Navbar';
+import SslogoWhite from './components/SslogoWhite';
 
 export default function Home() {
   const handleSignIn = () => {
@@ -11,25 +13,33 @@ export default function Home() {
   }
 
   return (
-    // <div className="absolute inset-0 -z-10 h-full w-full bg-white [background:radial-gradient(125%_125%_at_50%_10%,#f30303_20%,#2005f2_100%)] text-white">
-    <div className='absolute inset-0 -z-10 h-[100%] w-full bg-gray-500'>
-      <div className="relative max-w-[70%] w-full h-screen mx-auto text-center flex flex-col justify-center items-center">
-        <h1 className='text-9xl font-bold mt-48 font-jersey tracking-wider text-shadow'>Study Showdown</h1>
-          
-        <div className='flex justify-center item-center mt-24 font-medium tracking-widest'>
-          <p className="flex md:text-3xl sm:text-2xl text-xl font-jersey">helping you</p>
-          <ReactTyped className="flex md:text-3xl sm:text-2xl text-xl pl-2 font-jersey" 
-                      strings={['get motivated', 'study better', 'build discipline', 'make studying fun again']} 
-                      typeSpeed={75} backSpeed={75} loop />
-          
-        </div>
-          <div className="flex w-full justify-center mt-48 my-auto">
-          <Button onClick={handleSignIn} buttonName={"Get Started"} />
-          {/* <LoginButton /> */}
-          {/* <SignupButton /> */}
+    <div className="min-h-screen bg-cover bg-center bg-no-repeat dark-overlay bg-[url('../public/images/study-showdown-wallpaper.png')]">
+      <div className="dark-surround" />
+      <div className="ambient-overlay" />
+      
+      <Navbar />
+      <div className="h-screen flex items-center justify-center">
+        <div className='flex-col text-center floating'>
+          <div className="relative inline-block">
+            <h1 className='text-8xl font-bold tracking-wider font-brkreg text-stylized1 breathing'>
+              Study Showdown
+            </h1>
+            <div className="absolute top-full -right-52 transform -translate-y-[55%] rotate-12 scale-50 [filter:drop-shadow(2px_2px_0_black)_drop-shadow(-2px_-2px_0_black)_drop-shadow(-2px_2px_0_black)_drop-shadow(2px_-2px_0_black)]">
+              <SslogoWhite />
+            </div>
+          </div>
+            
+          <div className='mt-4 font-medium tracking-wider text-4xl'>
+            <p className="font-brkreg">helping you</p>
+            <ReactTyped className="pl-2 font-brkreg" 
+                        strings={['get motivated', 'study better', 'build discipline', 'make studying fun again']} 
+                        typeSpeed={75} backSpeed={75} loop />
+          </div>
+          <div className="mt-32 my-auto">
+            <Button onClick={handleSignIn} buttonName={"Get Started"} />
+          </div>
         </div>
       </div>
-    </div>      
-
+    </div>
   );
 }

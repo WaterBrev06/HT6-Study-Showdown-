@@ -21,6 +21,14 @@ export default {
       fontFamily: {
         jersey: ['"Jersey 10"', "sans-serif"],
         inter: ["Inter", "sans-serif"],
+
+        smallhollows: ['"Small-Hollows"', "sans-serif"],
+        phatone: ['"Phatone"', "sans-serif"],
+        medabots: ['"Medabots"', "sans-serif"],
+        pixel3: ['"Pixel3"', "sans-serif"],
+        brkreg: ['"BRKREG"', "sans-serif"],
+        brkdotted: ['"BRKDOTTED"', "sans-serif"],
+        brkdashed: ['"BRKDASHED"', "sans-serif"],
       },
       animation: {
         "gradient-xy": "gradient-xy 8s ease-in-out infinite",

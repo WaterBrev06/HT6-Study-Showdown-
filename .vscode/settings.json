@@ -1,0 +1,6 @@
+{
+  "reactSnippets.settings.prettierEnabled": false,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.formatOnSave": true,
+  "prettier.bracketSameLine": true
+}
