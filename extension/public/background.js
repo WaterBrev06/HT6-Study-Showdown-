@@ -226,7 +226,6 @@ chrome.tabs.onActivated.addListener((activeInfo) => {
         word: data.searchWord 
       }, (response) => {
         if (chrome.runtime.lastError) {
-          console.error("Error sending flyOwl message:", chrome.runtime.lastError);
         }
       });
     }
@@ -331,6 +330,11 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     chrome.alarms.create('scoreUpdateTimer', {
       periodInMinutes: 1
     });
+
+    // Create 10-second update timer
+    chrome.alarms.create('tenSecondUpdateTimer', {
+      periodInMinutes: 1/6
+    });
   } else if (message.action === 'endGame') {
     // Clear timer when game ends
     if (gameTimerInterval) {
@@ -370,9 +374,13 @@ chrome.runtime.onInstalled.addListener(() => {
   getUserInfo();
 });
 
-// Create an alarm for periodic score updates
+// Create both timers
 chrome.alarms.create('scoreUpdateTimer', {
-  periodInMinutes: 1
+  periodInMinutes: 1  // Keep original 1-minute timer
+});
+
+chrome.alarms.create('tenSecondUpdateTimer', {
+  periodInMinutes: 1/6  // 10-second timer
 });
 
 // Handle periodic score updates
@@ -414,31 +422,49 @@ chrome.alarms.onAlarm.addListener((alarm) => {
         // Silently handle any remaining errors
       }
     });
-  } else if (alarm.name === 'endGameTimer') {
-    console.log('Timer ended, sending owl away on all tabs');
-    // Send owl away on all tabs
-    chrome.tabs.query({}, (tabs) => {
-      tabs.forEach((tab) => {
-        try {
-          chrome.tabs.sendMessage(tab.id, { action: "flyOwlAway" }, (response) => {
-            if (chrome.runtime.lastError) {
-              console.error(`Error sending flyOwlAway to tab ${tab.id}:`, chrome.runtime.lastError);
-            } else {
-              console.log(`Owl flew away on tab ${tab.id}`);
-            }
+  } 
+  // New 10-second reward timer
+  else if (alarm.name === 'tenSecondUpdateTimer') {
+    chrome.tabs.query({ active: true, currentWindow: true }, async function(tabs) {
+      if (!tabs[0] || !tabs[0].url) return;
+      
+      const data = await chrome.storage.local.get(['gameActive', 'score', 'searchWord', 'lastSearchResult']);
+      if (!data.gameActive) return;
+
+      const currentUrl = tabs[0].url;
+      
+      if (isDefaultChromePage(currentUrl)) {
+        return;
+      }
+
+      // For input game mode
+      if (data.searchWord) {
+        // Only increase score if last search found >= 5 matches
+        if (data.lastSearchResult && data.lastSearchResult.count >= 5) {
+          const newScore = data.score + 5;
+          await chrome.storage.local.set({ score: newScore });
+          chrome.tabs.sendMessage(tabs[0].id, { 
+            action: "flyOwl",
+            scoreChange: 5
           });
-        } catch (error) {
-          console.error(`Error sending message to tab ${tab.id}:`, error);
         }
-      });
-    });
-    
-    // Reset game state
-    chrome.storage.local.set({ 
-      gameActive: false, 
-      searchWord: null 
-    }, () => {
-      console.log('Game state reset after timer end');
+      }
+      // For no-input game mode
+      else {
+        const isEducational = Object.keys(educationalDomains).some(domain => 
+          currentUrl.includes(domain)
+        );
+
+        // Only increase score if on educational site
+        if (isEducational) {
+          const newScore = data.score + 5;
+          await chrome.storage.local.set({ score: newScore });
+          chrome.tabs.sendMessage(tabs[0].id, { 
+            action: "flyOwl",
+            scoreChange: 5
+          });
+        }
+      }
     });
   }
 });
