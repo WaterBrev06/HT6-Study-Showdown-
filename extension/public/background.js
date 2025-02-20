@@ -34,14 +34,10 @@ function isDefaultChromePage(url) {
 
 function handleTabChange() {
   chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
-    if (tabs.length === 0) return; // No active tab found
+    if (tabs.length === 0) return;
 
     const activeTab = tabs[0];
     const url = activeTab.url;
-
-    // Debug logging to help identify URL patterns
-    console.log('Current URL:', url);
-    console.log('Is Default Chrome Page:', isDefaultChromePage(url));
 
     // Skip score changes for default Chrome pages
     if (isDefaultChromePage(url)) {
@@ -49,44 +45,39 @@ function handleTabChange() {
       return;
     }
 
-    // Check if the URL is educational
-    const isEducational = Object.keys(educationalDomains).some((domain) => {
-      if (url.includes(domain)) {
-        educationalDomains[domain] += 1; // Increment the visit count for the domain
-        return true;
+    // Check if we're in word search mode
+    chrome.storage.local.get(['searchWord', 'score'], function(data) {
+      // If we have a search word, skip domain-based scoring
+      if (data.searchWord) {
+        console.log('In word search mode, skipping domain-based scoring');
+        return;
       }
-      return false;
-    });
 
-    if (isEducational) {
-      // Check if the URL has already been visited
-      if (!visitedUrls.has(url)) {
-        // If not, add to visited URLs and update score
-        visitedUrls.add(url);
-        chrome.storage.local.get(["score"], function (data) {
+      // Only apply domain-based scoring if not in word search mode
+      const isEducational = Object.keys(educationalDomains).some((domain) => {
+        if (url.includes(domain)) {
+          educationalDomains[domain] += 1;
+          return true;
+        }
+        return false;
+      });
+
+      if (isEducational) {
+        if (!visitedUrls.has(url)) {
+          visitedUrls.add(url);
           const newScore = (data.score || 0) + 10;
           chrome.storage.local.set({ score: newScore });
           chrome.tabs.sendMessage(activeTab.id, { action: "flyOwl", scoreChange: 10 });
           console.log(`New score: ${newScore}`);
-        });
-      }
-    } else {
-      // Handle non-educational URL case
-      chrome.storage.local.get(["score"], function (data) {
+        }
+      } else {
         const newScore = (data.score || 0) - 5;
         chrome.storage.local.set({ score: newScore });
         chrome.tabs.sendMessage(activeTab.id, { action: "flyOwl", scoreChange: -5 });
         console.log(`New score: ${newScore}`);
-      });
-      bad += 1;
-    }
-
-    // Update the last active URL in storage
-    chrome.storage.local.set({ activeTabUrl: url });
-
-    // Log domain visit counts
-    console.log("Educational domain visit counts:", educationalDomains);
-    console.log("Bad domain visit counts:", bad);
+        bad += 1;
+      }
+    });
   });
 }
 
@@ -130,6 +121,51 @@ function handleEndGame() {
       recentScore: recentScore,
       userEmail: userEmail,
       userName: userName
+    });
+
+    // Log the values for debugging
+    console.log('Recent Score:', recentScore);
+    console.log('User Email:', userEmail);
+    console.log('User Name:', userName);
+  });
+}
+
+// Add this function definition before it's used
+function handleGameEnd() {
+  chrome.storage.local.get(['score', 'userEmail', 'userName'], function(data) {
+    const recentScore = data.score || 0;
+    const userEmail = data.userEmail || '';
+    const userName = data.userName || '';
+
+    // Save these values to Chrome's storage
+    chrome.storage.local.set({
+      recentScore: recentScore,
+      gameActive: false,
+      searchWord: null,
+      remainingTime: 0
+    });
+
+    // Clear all timers
+    if (gameTimerInterval) {
+      clearInterval(gameTimerInterval);
+      gameTimerInterval = null;
+    }
+    if (siteTimer) {
+      clearInterval(siteTimer);
+      siteTimer = null;
+    }
+
+    // Send flyOwlAway message to all tabs
+    chrome.tabs.query({}, (tabs) => {
+      tabs.forEach((tab) => {
+        chrome.tabs.sendMessage(tab.id, { 
+          action: "flyOwlAway"
+        }, () => {
+          if (chrome.runtime.lastError) {
+            // Ignore errors from tabs that can't receive messages
+          }
+        });
+      });
     });
 
     // Log the values for debugging
@@ -347,24 +383,32 @@ chrome.alarms.onAlarm.addListener((alarm) => {
     chrome.tabs.query({ active: true, currentWindow: true }, async function(tabs) {
       if (!tabs[0] || !tabs[0].url) return;
       
-      const data = await chrome.storage.local.get(['gameActive', 'score']);
+      const data = await chrome.storage.local.get(['gameActive', 'score', 'searchWord']);
       if (!data.gameActive) return;
 
       const currentUrl = tabs[0].url;
-      const currentScore = data.score || 0;
       
-      // Check if current URL is educational
+      // Skip score updates for default Chrome pages
+      if (isDefaultChromePage(currentUrl)) {
+        return;
+      }
+
+      // Skip periodic updates if in word search mode
+      if (data.searchWord) {
+        console.log('In word search mode, skipping periodic score updates');
+        return;
+      }
+
+      // Only apply periodic scoring in no-input mode
       const isEducational = Object.keys(educationalDomains).some(domain => 
         currentUrl.includes(domain)
       );
 
-      // Update score based on current site
-      const newScore = isEducational ? currentScore + 5 : currentScore - 5;
+      const newScore = isEducational ? data.score + 5 : data.score - 5;
       
       await chrome.storage.local.set({ score: newScore });
       console.debug(`Score ${isEducational ? 'increased' : 'decreased'} to ${newScore}`);
 
-      // Send message to content script to update score display
       try {
         await chrome.tabs.sendMessage(tabs[0].id, { 
           action: "flyOwl",
@@ -372,17 +416,6 @@ chrome.alarms.onAlarm.addListener((alarm) => {
         });
       } catch (error) {
         // Silently handle messaging errors
-      }
-
-      // Show mad sloth if score is negative
-      if (newScore < 0) {
-        try {
-          await chrome.tabs.sendMessage(tabs[0].id, { 
-            action: "showMadSloth"
-          });
-        } catch (error) {
-          // Silently handle messaging errors
-        }
       }
     });
   } else if (alarm.name === 'endGameTimer') {
