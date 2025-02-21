@@ -307,10 +307,12 @@ if (window.hasOwnProperty('SLOTH_GIF_URL')) {
   chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     try {
       if (message.action === "flyOwl") {
+        console.log('Received message:', message); // Debug log
+        
         // Check game state before proceeding
-        chrome.storage.local.get(['gameActive', 'searchWord', 'lastSearchResult'], function(data) {
+        chrome.storage.local.get(['gameActive', 'searchWord', 'lastSearchResult', 'score'], function(data) {
           if (!data.gameActive) {
-            console.log('Game not active, skipping owl animation');
+            console.log('Game not active, skipping animation');
             return;
           }
           
@@ -323,29 +325,8 @@ if (window.hasOwnProperty('SLOTH_GIF_URL')) {
 
           animateOwlIntoScreen();
           
-          // Only show score if game is active and there's no search word
-          if (!data.searchWord && data.gameActive) {
-            isShowingScore = true;
-            setTimeout(() => {
-              // Get fresh score from storage
-              chrome.storage.local.get(['score'], function(scoreData) {
-                const score = scoreData.score || 0;
-                const feedbackMessage = score >= 0 ? 
-                  `Score: ${score}` : 
-                  `Score: ${score}`;
-                addThoughtBubble(feedbackMessage);
-
-                // Show mad sloth after 5 seconds if score is negative
-                if (score < 0) {
-                  setTimeout(animateMadSloth, 5000);
-                }
-              });
-            }, 1000);
-
-            setTimeout(() => {
-              isShowingScore = false;
-            }, 3000);
-          } else if (data.searchWord || message.word) {
+          // Handle different game modes
+          if (data.searchWord || message.word) {
             const searchWord = data.searchWord || message.word;
             
             // Prevent duplicate searches within a short time window
@@ -366,10 +347,35 @@ if (window.hasOwnProperty('SLOTH_GIF_URL')) {
                 parsePageForWord(searchWord);
               }, 2000);
             }, 1000);
+          } else if (!data.searchWord && data.gameActive) {
+            // No-input game mode
+            isShowingScore = true;
+            setTimeout(() => {
+              const score = message.currentScore || data.score || 0;
+              console.log('Current score:', score, 'Score change:', message.scoreChange);
+              
+              // Handle score display
+              if (message.scoreChange < 0) {
+                console.log('Negative score change detected');
+                addThoughtBubble(`Score: ${score}`);
+                
+                // Only show mad sloth if score is actually negative
+                if (score < 0) {
+                  console.log('Score is negative, showing mad sloth');
+                  setTimeout(animateMadSloth, 2000);
+                }
+              } else {
+                addThoughtBubble(`Score: ${score}`);
+              }
+            }, 1000);
+
+            setTimeout(() => {
+              isShowingScore = false;
+            }, 3000);
           }
         });
 
-        sendResponse({ status: "Owl animation handled" });
+        sendResponse({ status: "Message handled" });
       } else if (message.action === "flyOwlAway") {
         animateOwlAway();
         sendResponse({ status: "Owl fly-away animation triggered" });

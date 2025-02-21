@@ -49,19 +49,13 @@ function handleTabChange() {
     const activeTab = tabs[0];
     const url = activeTab.url;
 
-    // Skip score changes for default Chrome pages
-    if (isDefaultChromePage(url)) {
-      return; // Remove console.log
-    }
+    if (isDefaultChromePage(url)) return;
 
-    // Check if we're in word search mode
-    chrome.storage.local.get(['searchWord', 'score'], function(data) {
-      // If we have a search word, skip domain-based scoring
-      if (data.searchWord) {
-        return; // Remove console.log
-      }
+    chrome.storage.local.get(['searchWord', 'score', 'gameActive'], function(data) {
+      if (!data.gameActive) return;
+      if (data.searchWord) return;
 
-      // Only apply domain-based scoring if not in word search mode
+      const currentScore = data.score || 0;
       const isEducational = Object.keys(educationalDomains).some((domain) => {
         if (url.includes(domain)) {
           educationalDomains[domain] += 1;
@@ -73,14 +67,25 @@ function handleTabChange() {
       if (isEducational) {
         if (!visitedUrls.has(url)) {
           visitedUrls.add(url);
-          const newScore = (data.score || 0) + 10;
+          const newScore = currentScore + 10;
           chrome.storage.local.set({ score: newScore });
-          sendMessageToTab(activeTab.id, { action: "flyOwl", scoreChange: 10 });
+          sendMessageToTab(activeTab.id, { 
+            action: "flyOwl", 
+            scoreChange: 10,
+            currentScore: newScore,
+            message: `Score: ${newScore}`
+          });
         }
       } else {
-        const newScore = (data.score || 0) - 5;
+        const newScore = currentScore - 5;
         chrome.storage.local.set({ score: newScore });
-        sendMessageToTab(activeTab.id, { action: "flyOwl", scoreChange: -5 });
+        sendMessageToTab(activeTab.id, { 
+          action: "flyOwl",
+          type: "madSloth",
+          scoreChange: -5,
+          currentScore: newScore,
+          message: `Score: ${newScore}`
+        });
         bad += 1;
       }
     });
@@ -172,6 +177,10 @@ function handleGameEnd() {
     console.log('Recent Score:', recentScore);
     console.log('User Email:', userEmail);
     console.log('User Name:', userName);
+
+    // Clear alarms when game ends
+    chrome.alarms.clear('tenSecondUpdateTimer');
+    chrome.alarms.clear('scoreUpdateTimer');
   });
 }
 
@@ -259,13 +268,11 @@ function stopTimer() {
 // Listen for messages from the popup
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === 'startGame') {
-    // Clear any existing timer first
+    // Clear any existing timers
     if (gameTimerInterval) {
       clearInterval(gameTimerInterval);
       gameTimerInterval = null;
     }
-
-    // Clear site timer
     if (siteTimer) {
       clearInterval(siteTimer);
       siteTimer = null;
@@ -282,9 +289,17 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         remainingTime: durationInSeconds,
         duration: durationInMinutes,
         score: 0,
-        // Only set searchWord if explicitly starting with a word
         searchWord: data.searchWord || null
       });
+    });
+
+    // Create both alarms when game starts
+    chrome.alarms.create('scoreUpdateTimer', {
+      periodInMinutes: 1
+    });
+    
+    chrome.alarms.create('tenSecondUpdateTimer', {
+      periodInMinutes: 1/6  // Exactly 10 seconds
     });
 
     if (message.searchWord) {
@@ -325,23 +340,16 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         handleGameEnd();
       }
     }, 1000);
-
-    // Create alarm for periodic score updates
-    chrome.alarms.create('scoreUpdateTimer', {
-      periodInMinutes: 1
-    });
-
-    // Create 10-second update timer
-    chrome.alarms.create('tenSecondUpdateTimer', {
-      periodInMinutes: 1/6
-    });
   } else if (message.action === 'endGame') {
     // Clear timer when game ends
     if (gameTimerInterval) {
       clearInterval(gameTimerInterval);
       gameTimerInterval = null;
     }
-    chrome.storage.local.set({ gameActive: false }, function () {
+    chrome.storage.local.set({ 
+      gameActive: false,
+      searchWord: null  // Explicitly ensure searchWord is cleared
+    }, function () {
       stopTimer();
       handleEndGame();
     });
@@ -372,15 +380,6 @@ chrome.runtime.onStartup.addListener(() => {
 // Get user info when the extension is installed
 chrome.runtime.onInstalled.addListener(() => {
   getUserInfo();
-});
-
-// Create both timers
-chrome.alarms.create('scoreUpdateTimer', {
-  periodInMinutes: 1  // Keep original 1-minute timer
-});
-
-chrome.alarms.create('tenSecondUpdateTimer', {
-  periodInMinutes: 1/6  // 10-second timer
 });
 
 // Handle periodic score updates
@@ -422,48 +421,78 @@ chrome.alarms.onAlarm.addListener((alarm) => {
         // Silently handle any remaining errors
       }
     });
-  } 
-  // New 10-second reward timer
-  else if (alarm.name === 'tenSecondUpdateTimer') {
+  } else if (alarm.name === 'endGameTimer') {
+    console.log('Timer ended, sending owl away on all tabs');
+    // Send owl away on all tabs
+    chrome.tabs.query({}, (tabs) => {
+      tabs.forEach((tab) => {
+        try {
+          chrome.tabs.sendMessage(tab.id, { action: "flyOwlAway" }, (response) => {
+            if (chrome.runtime.lastError) {
+              console.error(`Error sending flyOwlAway to tab ${tab.id}:`, chrome.runtime.lastError);
+            } else {
+              console.log(`Owl flew away on tab ${tab.id}`);
+            }
+          });
+        } catch (error) {
+          console.error(`Error sending message to tab ${tab.id}:`, error);
+        }
+      });
+    });
+    
+    // Reset game state
+    chrome.storage.local.set({ 
+      gameActive: false, 
+      searchWord: null 
+    }, () => {
+      console.log('Game state reset after timer end');
+    });
+  } else if (alarm.name === 'tenSecondUpdateTimer') {
     chrome.tabs.query({ active: true, currentWindow: true }, async function(tabs) {
       if (!tabs[0] || !tabs[0].url) return;
       
-      const data = await chrome.storage.local.get(['gameActive', 'score', 'searchWord', 'lastSearchResult']);
+      const data = await chrome.storage.local.get(['gameActive', 'score', 'searchWord']);
       if (!data.gameActive) return;
 
       const currentUrl = tabs[0].url;
       
-      if (isDefaultChromePage(currentUrl)) {
-        return;
-      }
+      if (isDefaultChromePage(currentUrl)) return;
+      if (data.searchWord) return;
 
-      // For input game mode
-      if (data.searchWord) {
-        // Only increase score if last search found >= 5 matches
-        if (data.lastSearchResult && data.lastSearchResult.count >= 5) {
-          const newScore = data.score + 5;
-          await chrome.storage.local.set({ score: newScore });
-          chrome.tabs.sendMessage(tabs[0].id, { 
-            action: "flyOwl",
-            scoreChange: 5
-          });
-        }
-      }
-      // For no-input game mode
-      else {
-        const isEducational = Object.keys(educationalDomains).some(domain => 
-          currentUrl.includes(domain)
-        );
+      const isEducational = Object.keys(educationalDomains).some(domain => 
+        currentUrl.includes(domain)
+      );
 
-        // Only increase score if on educational site
-        if (isEducational) {
-          const newScore = data.score + 5;
-          await chrome.storage.local.set({ score: newScore });
-          chrome.tabs.sendMessage(tabs[0].id, { 
-            action: "flyOwl",
-            scoreChange: 5
-          });
-        }
+      const currentScore = data.score || 0;
+      
+      if (isEducational) {
+        const newScore = currentScore + 5;
+        await chrome.storage.local.set({ score: newScore });
+        
+        chrome.tabs.sendMessage(tabs[0].id, { 
+          action: "flyOwl",
+          scoreChange: 5,
+          currentScore: newScore,
+          message: `Score: ${newScore}`
+        });
+      } else {
+        const newScore = currentScore - 5;
+        await chrome.storage.local.set({ score: newScore });
+        
+        chrome.tabs.sendMessage(tabs[0].id, { 
+          action: "flyOwl",
+          type: "madSloth",
+          scoreChange: -5,
+          currentScore: newScore,
+          message: `Score: ${newScore}`
+        });
+
+        // Debug log
+        console.log('Sending score update for mad sloth:', {
+          newScore,
+          currentScore,
+          change: -5
+        });
       }
     });
   }
