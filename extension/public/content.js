@@ -243,8 +243,17 @@ if (window.hasOwnProperty('SLOTH_GIF_URL')) {
       "https://www.codecademy.com",
       "https://www.duolingo.com",
       "https://learning.linkedin.com",
-      "https://www.skillshare.com"
+      "https://www.skillshare.com",
+      "https://www.udemy.com",
+      "https://www.coursera.org",
+      "https://www.edx.org",
+      "https://www.udacity.com",
+      "https://www.brilliant.org",
+      "https://ocw.mit.edu", 
+      "https://scholar.google.com",
+      "https://quizlet.com/",
     ];
+    
     return domains[Math.floor(Math.random() * domains.length)];
   }
 

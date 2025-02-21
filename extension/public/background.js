@@ -8,11 +8,20 @@ let lastUrl = '';
 // Object to store educational domains and their visit counts
 const educationalDomains = {
   "khanacademy.org": 0,
-  "codecademy": 0,
-  "duolingo": 0,
-  "learning.linkedin": 0,
-  "skillshare": 0,
+  "codecademy.com": 0,
+  "duolingo.com": 0,
+  "learning.linkedin.com": 0,
+  "skillshare.com": 0,
+  "udemy.com": 0,
+  "coursera.org": 0,
+  "edx.org": 0,
+  "udacity.com": 0,
+  "brilliant.org": 0,
+  "ocw.mit.edu": 0,
+  "scholar.google.com": 0,
+  "quizlet.com": 0,
 };
+
 
 // Update helper function to check for default Chrome pages
 function isDefaultChromePage(url) {
