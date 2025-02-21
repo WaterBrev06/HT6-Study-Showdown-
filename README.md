@@ -32,5 +32,5 @@ next build
 8. All Done!
 
 <div align="center">
-  <img src="https://github.com/user-attachments/assets/f0c20997-6980-4f18-9009-dc62320c2e2b" alt="Screenshot" width="500" height="500">
+  <img src="https://github.com/user-attachments/assets/e1b716d2-55f7-45fc-b33b-66140dfee609" alt="Screenshot" width="500" height="500">
 </div>
