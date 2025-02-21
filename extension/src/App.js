@@ -27,6 +27,7 @@ function App() {
   const [userEmail, setUserEmail] = useState('');
   const [userName, setUserName] = useState('');
   const [word, setWord] = useState('');
+  const [selectedDuration, setSelectedDuration] = useState(1);
 
   useEffect(() => {
     chrome.storage.local.get(
@@ -54,7 +55,7 @@ function App() {
     // Check if word is empty
     if (!word.trim()) {
       console.log("No word entered, starting game normally");
-      chrome.runtime.sendMessage({ action: 'startGame' });
+      chrome.runtime.sendMessage({ action: 'startGame', duration: selectedDuration });
       return;
     }
 
@@ -65,7 +66,7 @@ function App() {
         if (tabs[0]) {
           // Check if we're on a chrome:// page
           if (tabs[0].url.startsWith('chrome://')) {
-            chrome.runtime.sendMessage({ action: 'startGame' });
+            chrome.runtime.sendMessage({ action: 'startGame', duration: selectedDuration });
             return;
           }
 
@@ -83,7 +84,7 @@ function App() {
           );
 
           // Start game as normal
-          chrome.runtime.sendMessage({ action: 'startGame' });
+          chrome.runtime.sendMessage({ action: 'startGame', duration: selectedDuration });
         }
       });
     });
@@ -204,6 +205,22 @@ function App() {
             placeholder="Enter a word..."
             className="w-full px-4 py-2 bg-[#2a3b2a] border-2 border-[#ffffff20] rounded-lg text-[#9ba793] font-pixel placeholder-[#9ba793]/60 focus:outline-none focus:border-[#ffffff40] transition-colors"
           />
+          <div className="flex flex-wrap justify-center gap-2 my-4">
+            <p className="w-full text-center text-[#9ba793] font-pixel mb-2">Select Duration:</p>
+            {[1, 5, 10, 30, 60].map((duration) => (
+              <button
+                key={duration}
+                onClick={() => setSelectedDuration(duration)}
+                className={`px-3 py-1 rounded-md text-sm font-pixel ${
+                  selectedDuration === duration
+                    ? 'bg-green-600 text-white'
+                    : 'bg-[#1a2e1a] text-[#9ba793] hover:bg-[#243324]'
+                } border border-[#ffffff20]`}
+              >
+                {duration} Min
+              </button>
+            ))}
+          </div>
           <div className="flex justify-center mt-4">
             <button
               onClick={handleStart}
