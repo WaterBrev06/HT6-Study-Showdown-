@@ -9,7 +9,7 @@ import Sslogowhite from './components/Sslogowhite';
 export default function Home() {
   const handleSignIn = () => {
     console.log("Sign in button clicked");
-    window.location.href = "api/auth/login?returnTo=http://localhost:3000/leaderboard"; {/* Change the "returnTo" URL to "https://study-showdown.vercel.app/leaderboard" once deployed */}
+    window.location.href = "api/auth/login?returnTo=https://study-showdown.vercel.app/leaderboard"; {/* Change the "returnTo" URL to "https://study-showdown.vercel.app/leaderboard" once deployed */}
   }
 
   return (

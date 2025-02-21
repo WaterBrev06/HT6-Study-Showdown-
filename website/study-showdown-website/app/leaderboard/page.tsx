@@ -86,10 +86,10 @@ const LeaderboardPage = () => {
       </div>
       
       <div className="absolute top-0 right-0 m-4 flex gap-4">
-        <a href="http://localhost:3000">
+        <a href="https://study-showdown.vercel.app">
           <FaHome size={40} className="rounded-2xl bg-black/50 p-2 text-white hover:text-black hover:bg-white ease-in-out duration-500 [filter:drop-shadow(2px_2px_0_black)]"/>
         </a>
-        <a href="/api/auth/logout?returnTo=http://localhost:3000">
+        <a href="/api/auth/logout?returnTo=https://study-showdown.vercel.app">
           <FaUser size={40} className="rounded-2xl bg-black/50 p-2 text-white hover:text-black hover:bg-white ease-in-out duration-500 [filter:drop-shadow(2px_2px_0_black)]"/>
         </a>
       </div>
