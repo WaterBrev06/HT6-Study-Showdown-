@@ -4,18 +4,49 @@
   "description": "An engaging way to study!",
   "version": "1.0.0",
   "action": {
-    "default_popup": "./index.html",
-    "default_icon": "./ss-logoblack.png"
+    "default_popup": "index.html",
+    "default_icon": {
+      "16": "ss-new-logo.png",
+      "32": "ss-new-logo.png",
+      "48": "ss-new-logo.png",
+      "128": "ss-new-logo.png"
+    }
   },
-  "permissions": ["tabs", "activeTab", "storage", "alarms", "identity"],
+  "permissions": ["tabs", "activeTab", "storage", "alarms", "identity", "scripting"],
+  "host_permissions": [
+    "<all_urls>"
+  ],
   "background": { 
     "service_worker": "background.js"
   },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"]
+    }
+  ],
   "oauth2": {
-    "client_id": "62022002458-qpahdg9811aoc6peugtocgj7lck4rse5.apps.googleusercontent.com",
+    "client_id": "510747820205-m4rju0d0nfpsv1choc24vq8gb67nh3gi.apps.googleusercontent.com",
     "scopes": [
       "https://www.googleapis.com/auth/userinfo.email",
       "https://www.googleapis.com/auth/userinfo.profile"
     ]
-  }
+  },
+  "icons": {
+    "16": "ss-new-logo.png",
+    "32": "ss-new-logo.png",
+    "48": "ss-new-logo.png",
+    "128": "ss-new-logo.png"
+  },
+  "web_accessible_resources": [{
+    "resources": [
+      "*.gif",
+      "sloth-climb.gif",
+      "sloth-think.gif",
+      "sloth-mad.gif",
+      "study-showdown-wallpaper.png",
+      "ss-logo.png"
+    ],
+    "matches": ["<all_urls>"]
+  }]
 }

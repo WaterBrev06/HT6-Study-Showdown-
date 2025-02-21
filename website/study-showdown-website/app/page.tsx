@@ -1,39 +1,44 @@
 'use client'
 
 import { ReactTyped } from 'react-typed';
-import Sslogoblack from './components/sslogoblack';
 import Button from './components/Button';
 import './globals.css';
+import Navbar from './components/Navbar';
+import Sslogowhite from './components/Sslogowhite';
 
 export default function Home() {
   const handleSignIn = () => {
     console.log("Sign in button clicked");
-    window.location.href = "api/auth/login?returnTo=http://localhost:3000/leaderboard"; {/* Change the "returnTo" URL to your own domain once deployed */}
+    window.location.href = "api/auth/login?returnTo=http://localhost:3000/leaderboard"; {/* Change the "returnTo" URL to "https://study-showdown.vercel.app/leaderboard" once deployed */}
   }
 
   return (
-    // <div className="absolute inset-0 -z-10 h-full w-full bg-white [background:radial-gradient(125%_125%_at_50%_10%,#f30303_20%,#2005f2_100%)] text-white">
-    <div className='absolute inset-0 -z-10 h-full w-full bg-gradient-to-br from-[#f30303] to-[#2005f2] via-[#cf04ea] animate-gradient-xy'>
-      <div className="relative max-w-[800px] mt-[-96px] w-full h-screen mx-auto text-center flex flex-col justify-center items-center">
-        <div className="relative h-[58%] pt-24 w-full flex flex-col items-center justify-center">
-          {/* <Sslogowhite /> */}
-          <Sslogoblack className="animate-bounce h-[24rem]"/>
-          
-        </div>
-        <h1 className="md:text-7xl sm:text-6xl text-4xl font-bold font-custom md:drop-shadow-[8px_0_0_rgba(0,0,0,1)] sm:drop-shadow-[6px_0_0_rgba(0,0,0,1)] drop-shadow-[4px_0_0_rgba(0,0,0,1)]">Study Showdown</h1>
-        <div className="flex justify-center items-center">
-          <p className="md:text-3xl sm:text-2xl text-xl font-bold mt-8 mb-8 font-custom">helping you</p>
-          <ReactTyped className="md:text-3xl sm:text-2xl text-xl font-bold mt-8 mb-8 pl-2 font-custom" 
-                      strings={['get motivated', 'study better', 'build discipline', 'make studying fun again']} 
-                      typeSpeed={75} backSpeed={75} loop />
-          <div className="absolute flex w-full justify-center mt-48 my-auto">
-          <Button onClick={handleSignIn} buttonName={"Get Started"} />
-          {/* <LoginButton /> */}
-          {/* <SignupButton /> */}
+    <div className="min-h-screen bg-cover bg-center bg-no-repeat dark-overlay bg-[url('../public/images/study-showdown-wallpaper.png')]">
+      <div className="dark-surround" />
+      <div className="ambient-overlay" />
+      
+      <Navbar />
+      <div className="h-screen flex items-center justify-center">
+        <div className='flex-col text-center floating'>
+          <div className="relative inline-block">
+            <h1 className='text-8xl font-bold tracking-wider font-brkreg text-stylized1 breathing'>
+              Study Showdown
+            </h1>
+            <div className="absolute top-full -right-52 transform -translate-y-[55%] rotate-12 scale-50 [filter:drop-shadow(2px_2px_0_black)_drop-shadow(-2px_-2px_0_black)_drop-shadow(-2px_2px_0_black)_drop-shadow(2px_-2px_0_black)]">
+              <Sslogowhite />
+            </div>
+          </div>
+          <div className='mt-4 font-medium tracking-wider text-4xl'>
+            <p className="font-brkreg">helping you</p>
+            <ReactTyped className="pl-2 font-brkreg" 
+                        strings={['get motivated', 'study better', 'build discipline', 'make studying fun again']} 
+                        typeSpeed={75} backSpeed={75} loop />
+          </div>
+          <div className="mt-32 my-auto">
+            <Button onClick={handleSignIn} buttonName={"Get Started"} />
           </div>
         </div>
-      </div>      
+      </div>
     </div>
-
   );
 }
