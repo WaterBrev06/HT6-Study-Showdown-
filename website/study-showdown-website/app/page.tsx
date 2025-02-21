@@ -4,7 +4,7 @@ import { ReactTyped } from 'react-typed';
 import Button from './components/Button';
 import './globals.css';
 import Navbar from './components/Navbar';
-import SslogoWhite from './components/SslogoWhite';
+import Sslogowhite from './components/Sslogowhite';
 
 export default function Home() {
   const handleSignIn = () => {
@@ -25,10 +25,9 @@ export default function Home() {
               Study Showdown
             </h1>
             <div className="absolute top-full -right-52 transform -translate-y-[55%] rotate-12 scale-50 [filter:drop-shadow(2px_2px_0_black)_drop-shadow(-2px_-2px_0_black)_drop-shadow(-2px_2px_0_black)_drop-shadow(2px_-2px_0_black)]">
-              <SslogoWhite />
+              <Sslogowhite />
             </div>
           </div>
-            
           <div className='mt-4 font-medium tracking-wider text-4xl'>
             <p className="font-brkreg">helping you</p>
             <ReactTyped className="pl-2 font-brkreg" 
