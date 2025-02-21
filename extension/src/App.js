@@ -232,7 +232,7 @@ function App() {
           <p className="text-[#9ba793] text-center font-pixel">
             Visit the{" "}
             <a
-              href="https://studyshowdown.com/leaderboard"
+              href="https://study-showdown.vercel.app/leaderboard"
               target="_blank"
               rel="noopener noreferrer"
               className="text-blue-500 underline hover:text-blue-400"
