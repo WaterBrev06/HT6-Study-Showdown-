@@ -2,27 +2,37 @@ import React from 'react';
 
 const Leaderboard = ({ data }) => {
     return (
-        <div className='overflow-x-auto w-[800px] mx-auto my-auto justify-center'>
-            <table className='min-w-full divide-y-2 divide-white'>
+        <div className='w-full max-w-4xl mx-auto'>
+            <table className='w-full border-separate border-spacing-0'>
                 <thead>
-                    <tr>
-                        <th className='px-6 py-3 text-left text-xl font-custom text-white uppercase tracking-wider'>Position</th>
-                        <th className='px-6 py-3 text-left text-xl font-custom text-white uppercase tracking-wider'>Name / Email</th>
-                        <th className='px-6 py-3 text-left text-xl font-custom text-white uppercase tracking-wider'>Points</th>
+                    <tr className='[filter:drop-shadow(2px_2px_0_black)]'>
+                        <th className='px-6 py-3 text-left text-2xl font-brkreg text-stylized1 tracking-wider border-b-4 border-white'>Position</th>
+                        <th className='px-6 py-3 text-left text-2xl font-brkreg text-stylized1 tracking-wider border-b-4 border-white'>Name / Email</th>
+                        <th className='px-6 py-3 text-left text-2xl font-brkreg text-stylized1 tracking-wider border-b-4 border-white'>Points</th>
                     </tr>
                 </thead>
-                <tbody className='divide-y-2 divide-white'>
+                <tbody>
                     {data.map((item, index) => (
-                        <tr key={index}>
-                            <td className='px-6 py-4 whitespace-nowrap opacity-80 hover:opacity-100 hover:bg-white hover:bg-opacity-20 ease-in-out duration-500'>
-                                <div className='text-xl text-white font-custom'>{index + 1}</div>
+                        <tr key={index} 
+                            className={`
+                                backdrop-blur-sm 
+                                ${index === 0 ? 'bg-yellow-500/20' : 
+                                  index === 1 ? 'bg-gray-300/20' : 
+                                  index === 2 ? 'bg-amber-700/20' : 'bg-white/5'}
+                            `}>
+                            <td className='px-6 py-4 border-b-2 border-white/30'>
+                                <div className='text-2xl font-brkreg text-white [filter:drop-shadow(2px_2px_0_black)]'>
+                                    {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : index + 1}
+                                </div>
                             </td>
-                            <td className='px-6 py-4 whitespace-nowrap opacity-80 hover:opacity-100 hover:bg-white hover:bg-opacity-20 ease-in-out duration-500'>
-                                <div className='text-sm font-medium text-white'>{item.userName}</div>
-                                <div className='text-sm text-white'>{item.userEmail}</div>
+                            <td className='px-6 py-4 border-b-2 border-white/30'>
+                                <div className='text-xl font-brkreg text-white [filter:drop-shadow(1px_1px_0_black)]'>{item.userName}</div>
+                                <div className='text-sm text-white/80 font-custom'>{item.userEmail}</div>
                             </td>
-                            <td className='px-6 py-4 whitespace-nowrap opacity-80 hover:opacity-100 hover:bg-white hover:bg-opacity-20 ease-in-out duration-500'>
-                                <div className='text-md text-white'>{item.recentScore}</div>
+                            <td className='px-6 py-4 border-b-2 border-white/30'>
+                                <div className='text-xl font-brkreg text-white [filter:drop-shadow(1px_1px_0_black)]'>
+                                    {item.recentScore.toLocaleString()}
+                                </div>
                             </td>
                         </tr>
                     ))}

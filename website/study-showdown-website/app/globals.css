@@ -145,3 +145,26 @@ body {
 .breathing {
   animation: breathe 4s ease-in-out infinite;
 }
+
+/* Add these new floating animations with different durations */
+@keyframes floating {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+  100% { transform: translateY(0px); }
+}
+
+.floating-1 {
+  animation: floating 3s ease-in-out infinite;
+}
+
+.floating-2 {
+  animation: floating 3.5s ease-in-out infinite;
+}
+
+.floating-3 {
+  animation: floating 4s ease-in-out infinite;
+}
+
+.floating-4 {
+  animation: floating 4.5s ease-in-out infinite;
+}

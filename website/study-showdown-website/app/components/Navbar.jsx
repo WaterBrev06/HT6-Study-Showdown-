@@ -10,7 +10,7 @@ const Navbar = () => {
           <div className="relative flex h-24 items-center justify-between">
             <nav className="font-brkreg text-neutral-300 flex w-full justify-center gap-2 text-4xl tracking-wide">
               <Link
-                href="/testing"
+                href="/dashboard"
                 className="flex items-center px-16 py-8 duration-200 ease-in-out hover:bg-black hover:bg-opacity-50 hover:text-white"
                 prefetch={false}
               >
@@ -18,7 +18,7 @@ const Navbar = () => {
               </Link>
 
               <Link
-                href="#"
+                href="/showdown"
                 className="flex items-center px-16 py-8 duration-200 ease-in-out hover:bg-black hover:bg-opacity-50 hover:text-white"
                 prefetch={false}
               >
@@ -26,7 +26,7 @@ const Navbar = () => {
               </Link>
 
               <Link
-                href="#"
+                href="/leaderboard"
                 className="flex items-center px-16 py-8 duration-200 ease-in-out hover:bg-black hover:bg-opacity-50 hover:text-white"
                 prefetch={false}
               >
